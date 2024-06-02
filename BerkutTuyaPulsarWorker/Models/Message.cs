@@ -21,4 +21,10 @@ public class Message<T>
 
     [JsonPropertyName("key")]
     public string Key { get; set; }
+
+    [JsonIgnore]
+    public T Result { get; set; }
+
+    [JsonIgnore]
+    public MessageContent MessageContent { get; set; }
 }

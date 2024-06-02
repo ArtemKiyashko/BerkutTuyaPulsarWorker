@@ -20,6 +20,10 @@ public class Worker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             var message = await _webSocket.GetMessageAsync<DeviceData>();
+            _logger.LogInformation($"Message ID received: {message.MessageId}");
+
+            //can re-read same message before acknowledge it!
+            await _webSocket.AcknowledgeMessageAsync(message.MessageId);
         }
     }
 }

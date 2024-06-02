@@ -6,5 +6,6 @@ public interface ITuyaWebSocket
 {
     Task ConnectAsync(CancellationToken cancellationToken);
     Task ConnectAsync();
-    Task<T?> GetMessageAsync<T>();
+    Task<Message<T>?> GetMessageAsync<T>();
+    Task AcknowledgeMessageAsync(string messageId);
 }

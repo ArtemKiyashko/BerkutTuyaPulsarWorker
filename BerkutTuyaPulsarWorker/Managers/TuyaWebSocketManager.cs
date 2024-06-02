@@ -38,7 +38,7 @@ public class TuyaWebSocketManager : ITuyaWebSocket
 
     }
 
-    public async Task<T?> GetMessageAsync<T>()
+    public async Task<Message<T>?> GetMessageAsync<T>()
     {
         using var ms = new MemoryStream();
         while (_webSocket.State == WebSocketState.Open)
@@ -47,13 +47,25 @@ public class TuyaWebSocketManager : ITuyaWebSocket
             using var streamReader = new StreamReader(ms, Encoding.UTF8);
             var text = await streamReader.ReadToEndAsync();
             var message = JsonSerializer.Deserialize<Message<T>>(text);
-            var payloadJson = Encoding.UTF8.GetString(Convert.FromBase64String(message.Payload));
-            var messageContent = JsonSerializer.Deserialize<MessageContent>(payloadJson);
-            var decryptedData = await TuyaCryptoHelper.DecryptPayloadAsync(messageContent.Data, _options.AccessKey);
-            var result = JsonSerializer.Deserialize<T>(decryptedData);
-            return result;
+            message.MessageContent = GetMessageContent(message);
+            message.Result = await GetContentData(message);
+            return message;
         }
         return default;
+    }
+
+    private async Task<T?> GetContentData<T>(Message<T>? message)
+    {
+        var decryptedData = await TuyaCryptoHelper.DecryptPayloadAsync(message.MessageContent.Data, _options.AccessKey);
+        var result = JsonSerializer.Deserialize<T>(decryptedData);
+        return result;
+    }
+
+    private static MessageContent GetMessageContent<T>(Message<T> message)
+    {
+        var payloadJson = Encoding.UTF8.GetString(Convert.FromBase64String(message.Payload));
+        var messageContent = JsonSerializer.Deserialize<MessageContent>(payloadJson);
+        return messageContent;
     }
 
     private async Task ReadAllDataToStream(Stream stream)
@@ -77,4 +89,13 @@ public class TuyaWebSocketManager : ITuyaWebSocket
     public Task ConnectAsync() => ConnectAsync(CancellationToken.None);
 
     public Task ConnectAsync(CancellationToken cancellationToken) => _webSocket.ConnectAsync(new Uri(_topicUrl), cancellationToken);
+
+    public Task AcknowledgeMessageAsync(string messageId)
+    {
+        var message = new AcknowledgeMessage{
+            MessageId = messageId
+        };
+        var messageString = JsonSerializer.Serialize(message);
+        return _webSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(messageString)), WebSocketMessageType.Text, true, CancellationToken.None);
+    }
 }
