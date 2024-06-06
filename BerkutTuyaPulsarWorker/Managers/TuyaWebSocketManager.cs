@@ -47,6 +47,9 @@ public class TuyaWebSocketManager : ITuyaWebSocket
             using var streamReader = new StreamReader(ms, Encoding.UTF8);
             var text = await streamReader.ReadToEndAsync();
             var message = JsonSerializer.Deserialize<Message<T>>(text);
+
+            await AcknowledgeMessageAsync(message.MessageId);
+            
             message.MessageContent = GetMessageContent(message);
             message.Result = await GetContentData(message);
             return message;

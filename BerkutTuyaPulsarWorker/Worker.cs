@@ -7,11 +7,13 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly ITuyaWebSocket _webSocket;
+    private readonly IBroadcasterRepository _broadcasterRepository;
 
-    public Worker(ILogger<Worker> logger, ITuyaWebSocket webSocket)
+    public Worker(ILogger<Worker> logger, ITuyaWebSocket webSocket, IBroadcasterRepository broadcasterRepository)
     {
         _logger = logger;
         _webSocket = webSocket;
+        _broadcasterRepository = broadcasterRepository;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -19,11 +21,19 @@ public class Worker : BackgroundService
         await _webSocket.ConnectAsync(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
-            var message = await _webSocket.GetMessageAsync<DeviceData>();
-            _logger.LogInformation($"Message ID received: {message.MessageId}");
+            try
+            {
+                var message = await _webSocket.GetMessageAsync<DeviceData>();
+                _logger.LogInformation($"Message ID received: {message.MessageId}");
+                await _broadcasterRepository.PublishDeviceDataAsync(message.Result);
 
-            //can re-read same message before acknowledge it!
-            await _webSocket.AcknowledgeMessageAsync(message.MessageId);
+                //can re-read same message before acknowledge it!
+                //await _webSocket.AcknowledgeMessageAsync(message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing device message");
+            }
         }
     }
 }
