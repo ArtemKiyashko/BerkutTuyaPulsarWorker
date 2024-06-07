@@ -17,9 +17,11 @@ public class BroadcasterRepository : IBroadcasterRepository
         _options = options.CurrentValue;
 
         _httpClient.BaseAddress = _options.BaseUrl;
-        _httpClient.DefaultRequestHeaders.Add("x-functions-key", _options.ApiKey);
+
+        if(!string.IsNullOrEmpty(_options.AuthHeaderName))
+            _httpClient.DefaultRequestHeaders.Add(_options.AuthHeaderName, _options.ApiKey);
     }
 
     public Task PublishDeviceDataAsync(DeviceData deviceData) =>
-        _httpClient.PostAsJsonAsync("api/devicestatus", deviceData);
+        _httpClient.PostAsJsonAsync(_options.PostDeviceStatusEndpoint, deviceData);
 }

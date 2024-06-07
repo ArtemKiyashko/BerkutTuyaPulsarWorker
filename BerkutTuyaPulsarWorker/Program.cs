@@ -3,7 +3,6 @@ using BerkutTuyaPulsarWorker.Interfaces;
 using BerkutTuyaPulsarWorker.Managers;
 using BerkutTuyaPulsarWorker.Options;
 using BerkutTuyaPulsarWorker.Repositories;
-using Microsoft.Extensions.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
