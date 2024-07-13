@@ -14,12 +14,14 @@ public class TuyaWebSocketManager : ITuyaWebSocket
 {
     private readonly ClientWebSocket _webSocket = new();
     private readonly WebSocketOptions _options;
+    private readonly ILogger<TuyaWebSocketManager> _logger;
     private const int _receiveChunkSize = 1024 * 5;
     private string _topicUrl => $"{_options.ServerUrl}ws/v2/consumer/persistent/{_options.AccessId}/out/{_options.MqEnv}/{_options.SubscriptionName}{_options.QueryParams}";
 
-    public TuyaWebSocketManager(IOptionsMonitor<WebSocketOptions> options)
+    public TuyaWebSocketManager(IOptionsMonitor<WebSocketOptions> options, ILogger<TuyaWebSocketManager> logger)
     {
         _options = options.CurrentValue;
+        _logger = logger;
         options.OnChange(OnSocketOptionsChange);
         InitSocket();
     }
@@ -46,6 +48,9 @@ public class TuyaWebSocketManager : ITuyaWebSocket
             await ReadAllDataToStream(ms);
             using var streamReader = new StreamReader(ms, Encoding.UTF8);
             var text = await streamReader.ReadToEndAsync();
+
+            _logger.LogInformation($"Message received (raw): {text}");
+            
             var message = JsonSerializer.Deserialize<Message<T>>(text);
 
             await AcknowledgeMessageAsync(message.MessageId);
