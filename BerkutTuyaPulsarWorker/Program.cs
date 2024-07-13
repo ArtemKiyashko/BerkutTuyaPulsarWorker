@@ -24,6 +24,7 @@ builder.Services.AddTransient<IBroadcasterRepository, BroadcasterRepository>();
 
 builder.Services.Configure<WebSocketOptions>(builder.Configuration.GetSection(nameof(WebSocketOptions)));
 builder.Services.AddSingleton<ITuyaWebSocket, TuyaWebSocketManager>();
+builder.Services.AddApplicationInsightsTelemetryWorkerService();
 
 var host = builder.Build();
 host.Run();
