@@ -1,5 +1,7 @@
 using BerkutTuyaPulsarWorker.Interfaces;
 using BerkutTuyaPulsarWorker.Models;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace BerkutTuyaPulsarWorker;
 
@@ -24,8 +26,8 @@ public class Worker : BackgroundService
             try
             {
                 var message = await _webSocket.GetMessageAsync<DeviceData>();
-                _logger.LogInformation($"Message ID received: {message.MessageId}");
-                await _broadcasterRepository.PublishDeviceDataAsync(message.Result);
+                _logger.LogInformation($"Message ID received: {message?.MessageId}");
+                await _broadcasterRepository.PublishDeviceDataAsync(message?.Result);
 
                 //can re-read same message before acknowledge it!
                 //await _webSocket.AcknowledgeMessageAsync(message.MessageId);

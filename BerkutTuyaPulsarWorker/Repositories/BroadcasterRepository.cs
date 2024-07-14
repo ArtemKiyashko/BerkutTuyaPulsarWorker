@@ -22,6 +22,9 @@ public class BroadcasterRepository : IBroadcasterRepository
             _httpClient.DefaultRequestHeaders.Add(_options.AuthHeaderName, _options.ApiKey);
     }
 
-    public Task PublishDeviceDataAsync(DeviceData deviceData) =>
-        _httpClient.PostAsJsonAsync(_options.PostDeviceStatusEndpoint, deviceData);
+    public Task PublishDeviceDataAsync(DeviceData deviceData)
+    {
+        ArgumentNullException.ThrowIfNull(deviceData);
+        return _httpClient.PostAsJsonAsync(_options.PostDeviceStatusEndpoint, deviceData);
+    }
 }

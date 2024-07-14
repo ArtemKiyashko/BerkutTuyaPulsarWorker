@@ -1,4 +1,5 @@
 using BerkutTuyaPulsarWorker;
+using BerkutTuyaPulsarWorker.Decorators;
 using BerkutTuyaPulsarWorker.Interfaces;
 using BerkutTuyaPulsarWorker.Managers;
 using BerkutTuyaPulsarWorker.Options;
@@ -21,9 +22,11 @@ builder.Services.Configure<BroadcasterOptions>(builder.Configuration.GetSection(
 
 builder.Services.AddHttpClient<BroadcasterRepository>();
 builder.Services.AddTransient<IBroadcasterRepository, BroadcasterRepository>();
+builder.Services.Decorate<IBroadcasterRepository, BroadcasterRepositoryLoggerDecorator>();
 
 builder.Services.Configure<WebSocketOptions>(builder.Configuration.GetSection(nameof(WebSocketOptions)));
 builder.Services.AddSingleton<ITuyaWebSocket, TuyaWebSocketManager>();
+builder.Services.Decorate<ITuyaWebSocket, TuyaWebSocketManagerLoggerDecorator>();
 builder.Services.AddApplicationInsightsTelemetryWorkerService();
 
 var host = builder.Build();
